@@ -1,0 +1,13 @@
+# Wiz + XSIAM — 5-Minute Brief
+
+Wiz is the market-leading Cloud-Native Application Protection Platform (CNAPP) — agentless, connects directly to cloud APIs, scans your entire AWS/Azure/GCP estate in minutes. It maps every resource, every identity, every vulnerability, every misconfiguration, and every data exposure risk into a Security Graph that surfaces pre-correlated attack chain findings called "toxic combinations." Google acquired Wiz for $32B in 2025. It remains independently operated with active third-party integrations.
+
+Palo Alto XSIAM is your SOC brain — AI-driven correlation, automation, and response across all telemetry. The problem it has without Wiz: it doesn't natively see inside your cloud posture. It might get a raw process alert from a cloud workload but has no context on whether that workload was misconfigured, over-permissioned, or sitting on sensitive data. Wiz fills that gap completely.
+
+The integration exists today on the Cortex Marketplace (Pack v2.0.1, October 2025). Two integrations ship in the pack: the core Wiz integration for posture issues (misconfigurations, vulnerabilities, secrets, identity risks, toxic combinations) and WizDefend for real-time runtime threat detections (lateral movement, privilege escalation, crypto mining, active exploits). Both are bidirectional — XSIAM creates incidents from Wiz findings and can push status updates back to Wiz.
+
+What your cyber defense team gets: every WizDefend detection landing in XSIAM already carries the full cloud context — which account, which region, what the resource's open vulnerabilities are, what IAM permissions it holds, whether it touches sensitive data, who owns the project. Your analyst never starts an investigation blind. XSIAM playbooks can immediately cross-correlate against endpoint and network telemetry for the same resource, auto-notify the cloud resource owner, and trigger containment. The out-of-box Assess WizDefend Detections playbook gives you a working starting point to customise.
+
+The biggest win: toxic combination escalation. A Wiz posture issue (overpermissioned service account) sitting in a compliance backlog becomes a CRITICAL XSIAM incident the moment WizDefend detects suspicious activity from that exact resource. You build that correlation rule once in XSIAM and your team stops manually connecting those dots at 2am.
+
+For a SOC — install the pack, configure polling for HIGH/CRITICAL Wiz Issues, configure WizDefend via webhook for zero-latency real-time detections, and customise the two out-of-box playbooks. You will have meaningful cloud detection and response capability running within a day.
