@@ -1,0 +1,142 @@
+{
+  "dataFlows": [
+    {
+      "destinations": [
+        "hcsc-log-analytics-security"
+      ],
+      "streams": [
+        "Microsoft-WindowsEvent"
+      ],
+      "transformKql": "source | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files\\\\HP\\\\HP BTO Software\\\\bin\\\\ovcodautil.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files\\\\Tivoli\\\\cit\\\\bin\\\\hdump_ia32.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files\\\\Tivoli\\\\cit\\\\bin\\\\wscanuse.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files (x86)\\\\Citrix\\\\HealthMon\\\\Tests\\\\Citrix\\\\CheckTermSrv.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files (x86)\\\\Citrix\\\\HealthMon\\\\Tests\\\\Citrix\\\\IMATest.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files (x86)\\\\Citrix\\\\HealthMon\\\\Tests\\\\Citrix\\\\RequestTicket.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files (x86)\\\\PharosSystems\\\\PrintScout\\\\PharosSystems.PrintAgent.Utilities.RunDll64.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Program Files (x86)\\\\Tivoli\\\\cit\\\\bin\\\\hdump_x64.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Windows\\\\Microsoft.NET\\\\Framework\\\\v4.0.30319\\\\vbc.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Windows\\\\System32\\\\conhost.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Windows\\\\System32\\\\wbem\\\\WmiApSrv.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'C:\\\\Windows\\\\System32\\\\wbem\\\\WmiPrvSE.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'D:\\\\Imperva\\\\RemoteAgent\\\\ProcessInfo64.exe' or EventID != 4688) | where (EventID == 4688 and tostring(EventData.NewProcessName) !contains 'D:\\\\Symantec\\\\Symantec Endpoint Protection Manager\\\\bin\\\\XDelta64\\\\xdelta3.exe' or EventID != 4688)"
+    }
+  ],
+  "dataSources": {
+    "windowsEventLogs": [
+      {
+        "name": "q0",
+        "streams": [
+          "Microsoft-WindowsEvent"
+        ],
+        "xPathQueries": [
+          "System!*[System[Provider[@Name='Microsoft Antimalware'] and (EventID>=1116 and EventID<=1119)]]",
+          "Microsoft-Windows-AppLocker/EXE and DLL!*[UserData[RuleAndFileData[PolicyName='EXE']]]",
+          "Microsoft-Windows-AppLocker/MSI and Script!*",
+          "Security!*[System[(EventID=5632)]]",
+          "Microsoft-Windows-TaskScheduler/Operational!*[System[Provider[@Name='Microsoft-Windows-TaskScheduler'] and (EventID=106 or EventID=141 or EventID=142 )]]",
+          "System!*[System[Provider[@Name='Microsoft-Windows-TaskScheduler'] and (EventID=106 or EventID=141 or EventID=142 )]]",
+          "System!*[System[Provider[@Name='Microsoft-Windows-Kernel-General'] and (EventID=12 or EventID=13)]]",
+          "System!*[System[Provider[@Name='Service Control Manager'] and (EventID=7000 or EventID=7045)]]",
+          "Security!*[System[(EventID=4697)]]",
+          "Security!*[System[(EventID=4778 or EventID=4779)]]",
+          "Security!*[System[(EventID=4616)]]",
+          "System!*[System[Provider[@Name='USER32'] and (EventID=1074)]]",
+          "Microsoft-Windows-AppLocker/Packaged app-Execution!*",
+          "Microsoft-Windows-AppLocker/Packaged app-Deployment!*",
+          "Application!*[System[Provider[@Name='EMET'] and (EventID!=50)]]",
+          "System!*[System[Provider[@Name='Microsoft-Windows-Eventlog']]]",
+          "Security!*[System[(EventID=4624)]] and (*[EventData[Data[@Name='LogonType']!='3']]) and (*[EventData[Data[@Name='LogonType']!='5']])",
+          "Application!*[System[Provider[@Name='Windows Error Reporting']]] and (*[EventData[Data[3] ='APPCRASH']])",
+          "Security!*[System[(EventID=1102 or EventID = 1100)]]",
+          "System!*[System[(EventID=104)]]",
+          "Security!*[System[(EventID=4647)]]",
+          "Security!*[System[(EventID=4634)]] and (*[EventData[Data[@Name='LogonType'] != '3']])",
+          "Security!*[System[(EventID=4624)]] and (*[EventData[Data[@Name='LogonType']='5']]) and (*[EventData[Data[@Name='TargetUserSid'] != 'S-1-5-18']]) and (*[EventData[Data[@Name='TargetUserSid'] != 'S-1-5-19']]) and (*[EventData[Data[@Name='TargetUserSid'] != 'S-1-5-20']])",
+          "Security!*[System[(EventID=5142 or EventID=5144)]]",
+          "Security!*[System[Provider[@Name='Microsoft-Windows-Eventlog']]]",
+          "Security!*[System[(EventID=4672)] and not EventData[Data[1]='S-1-5-18']]",
+          "Security!*[System[(EventID=4732 or EventID=4728 or EventID=4756)]]",
+          "Security!*[System[(EventID=4733 or EventID=4729 or EventID=4757)]]",
+          "Microsoft-Windows-TerminalServices-RDPClient/Operational!*[System[(EventID=1024)]]",
+          "Security!*[System[(EventID=4886 or EventID=4887 or EventID=4888)]]",
+          "Security!*[System[(EventID=4720 or EventID=4722 or EventID=4725 or EventID=4726 or EventID=4743)]]",
+          "Microsoft-Windows-SmartCard-Audit/Authentication!*",
+          "Microsoft-Windows-SMBClient/Operational!*[System[(EventID=30622 or EventID=30624)]]",
+          "Application!*[System[Provider[@Name='Microsoft-Windows-User Profiles Service'] and (EventID=1511 or EventID=1518)]]",
+          "Microsoft-Windows-Sysmon/Operational!*",
+          "Application!*[System[Provider[@Name='Application Error'] and (EventID=1000)]]",
+          "Application!*[System[Provider[@Name='Application Hang'] and (EventID=1002)]]",
+          "Microsoft-Windows-Windows Defender/Operational!*[System[( (EventID>=1006 and EventID<=1009) )]]",
+          "Microsoft-Windows-Windows Defender/Operational!*[System[( (EventID>=1116 and EventID<=1119) )]]",
+          "Security!*[System[(EventID=4618)]]",
+          "Security!*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and EventID=4740]]",
+          "Security!*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and EventID=4625]]",
+          "Security!*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and EventID=4648]]",
+          "Security!*[System[(EventID=4734 or EventID=4730 or EventID=4758)]]",
+          "Security!*[System[(EventID=4744 or EventID=4749 or EventID=4759)]]",
+          "Security!*[System[(EventID=4745 or EventID=4750 or EventID=4760)]]",
+          "Security!*[System[(EventID=4746 or EventID=4751 or EventID=4761)]]",
+          "Security!*[System[(EventID=4747 or EventID=4752 or EventID=4762)]]",
+          "Security!*[System[(EventID=4748 or EventID=4753 or EventID=4763)]]",
+          "Security!*[System[(EventID=4749)]]",
+          "Security!*[System[(EventID=4750)]]",
+          "Security!*[System[(EventID=4759)]]",
+          "Security!*[System[(EventID=4760)]]",
+          "Security!*[System[(EventID=4670)]]",
+          "System!*[System[Provider[@Name='Service Control Manager'] and EventID=7036]] and *[EventData[Data[@Name='param1']!='WMI Performance Adapter']]",
+          "Microsoft-Windows-PowerShell/Operational!*[System[Security[@UserID!='S-1-5-18'] and (EventID=40961)]]",
+          "Security!*[System[(EventID=4706 or EventID=4707 or EventID=4716)]]",
+          "Security!*[System[(EventID=4713)]]",
+          "Security!*[System[(EventID=4865 or EventID=4866 or EventID=4867)]]",
+          "Security!*[System[(EventID=4723 or EventID=4724)]]",
+          "Security!*[System[(EventID=4738 or EventID=4781)]]",
+          "Security!*[System[(EventID=4739)]]",
+          "Security!*[System/EventID=4771 and EventData[Data[1]/@Name='TargetUserName' and Data[1]!='TWAUSWODXA702$']]",
+          "Security!*[System[(EventID=4735 or EventID=4737 or EventID=4755)]]",
+          "Security!*[System[(EventID=4731 or EventID=4727 or EventID=4754)]]",
+          "System!*[System[(EventID>=600 and EventID<=615)]]",
+          "Security!*[System[(EventID=4768)]]",
+          "Security!*[System[(EventID=4698 or EventID=4699 or EventID=4700 or EventID=4701 or EventID=4702)]]",
+          "Security!*[System[(EventID=5136 or EventID=5137 or EventID=5141)]]",
+          "Security!*[System[(EventID=4688)]]"
+        ]
+      }
+    ]
+  },
+  "destinations": {
+    "logAnalytics": [
+      {
+        "name": "hcsc-log-analytics",
+        "workspaceId": "5e685811-bc5d-4e73-8b48-00700c300aa7",
+        "workspaceResourceId": "/subscriptions/7160cf79-3964-41af-8168-05a588c5f99b/resourcegroups/hcsc_app00006757_prh_nc_rg/providers/microsoft.operationalinsights/workspaces/hcsc-log-analytics"
+      },
+      {
+        "name": "hcsc-log-analytics-security",
+        "workspaceId": "1253d723-5380-4e77-9b6e-cf83dc9243a1",
+        "workspaceResourceId": "/subscriptions/7160cf79-3964-41af-8168-05a588c5f99b/resourcegroups/hcsc_app00046953_prh_nc_rg/providers/microsoft.operationalinsights/workspaces/hcsc-log-analytics-security"
+      }
+    ]
+  },
+  "etag": "\"9707c969-0000-0100-0000-6765c8750000\"",
+  "id": "/subscriptions/7160cf79-3964-41af-8168-05a588c5f99b/resourceGroups/hcsc_APP00006757_prh_nc_rg/providers/Microsoft.Insights/dataCollectionRules/azure_windows_dcr_rules",
+  "immutableId": "dcr-a3c4c5b3addf4816b210961e51b9a7c3",
+  "location": "northcentralus",
+  "name": "azure_windows_dcr_rules",
+  "provisioningState": "Succeeded",
+  "resourceGroup": "hcsc_APP00006757_prh_nc_rg",
+  "systemData": {
+    "createdAt": "2022-09-29T20:51:35.0372088Z",
+    "createdBy": "Manas_Patkar@bcbsil.com",
+    "createdByType": "User",
+    "lastModifiedAt": "2024-12-20T19:41:39.1064607Z",
+    "lastModifiedBy": "Rajarsh_Puli@bcbsil.com",
+    "lastModifiedByType": "User"
+  },
+  "tags": {
+    "APMID": "APP00046953",
+    "AYSQueueName": "HCSC_SecOps_SecDataLake",
+    "AppName": "Sentinel",
+    "AppProductOwner": "Ron Weiss\t\t",
+    "AppProductOwnerEmail": "Ronald_weiss@bcbsil.com",
+    "AppSupportEmail": "HCSC_SecOps_SecDataLake@bcbsil.com",
+    "CostCenter": "1902",
+    "DR": "Tier1",
+    "DataClassification": "Non-Public",
+    "EndDate": "2030-12-31",
+    "PCode": "P00025633",
+    "Portfolio": "Infrastructure",
+    "Product ID": "PRD00000242",
+    "StartDate": "2021-04-15",
+    "ZCode": "1000761"
+  },
+  "type": "Microsoft.Insights/dataCollectionRules"
+}
