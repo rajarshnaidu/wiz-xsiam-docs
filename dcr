@@ -1,0 +1,204 @@
+#!/bin/bash
+
+# =============================================================================
+
+# create_direct_dcr.sh
+
+# Reads an existing AMA-based DCR and creates a new “Direct” (Logs Ingestion
+
+# API) DCR from it, then prints the HTTP ingestion endpoint and immutable ID.
+
+# =============================================================================
+
+set -euo pipefail
+
+# —————————————————————————–
+
+# VARIABLES — fill these in before running
+
+# —————————————————————————–
+
+OLD_DCR_NAME=”<your-old-dcr-name>”        # Name of the existing AMA-based DCR
+NEW_DCR_NAME=”<your-new-dcr-name>”        # Name for the new Direct DCR
+RESOURCE_GROUP=”<your-resource-group>”    # Resource group for both DCRs
+SUBSCRIPTION_ID=”<your-subscription-id>” # Azure Subscription ID
+
+# Optional: override location (leave blank to inherit from old DCR)
+
+LOCATION_OVERRIDE=””
+
+# —————————————————————————–
+
+# Colours for output
+
+RED=’\033[0;31m’; GREEN=’\033[0;32m’; YELLOW=’\033[1;33m’; CYAN=’\033[0;36m’; NC=’\033[0m’
+
+log()    { echo -e “${CYAN}[INFO]${NC}  $*”; }
+ok()     { echo -e “${GREEN}[OK]${NC}    $*”; }
+warn()   { echo -e “${YELLOW}[WARN]${NC}  $*”; }
+error()  { echo -e “${RED}[ERROR]${NC} $*”; exit 1; }
+
+# —————————————————————————–
+
+# 1. Login
+
+# —————————————————————————–
+
+log “Logging in to Azure…”
+az login –output none
+az account set –subscription “$SUBSCRIPTION_ID”
+ok “Logged in. Subscription set to: $SUBSCRIPTION_ID”
+
+# —————————————————————————–
+
+# 2. Fetch the old DCR
+
+# —————————————————————————–
+
+log “Fetching old DCR: $OLD_DCR_NAME …”
+OLD_DCR_JSON=$(az monitor data-collection rule show   
+–name “$OLD_DCR_NAME”   
+–resource-group “$RESOURCE_GROUP”   
+–output json) || error “Could not find DCR ‘$OLD_DCR_NAME’ in resource group ‘$RESOURCE_GROUP’”
+
+ok “Old DCR fetched.”
+
+# Determine location
+
+if [[ -n “$LOCATION_OVERRIDE” ]]; then
+LOCATION=”$LOCATION_OVERRIDE”
+else
+LOCATION=$(echo “$OLD_DCR_JSON” | python3 -c “import sys,json; print(json.load(sys.stdin)[‘location’])”)
+fi
+log “Using location: $LOCATION”
+
+# —————————————————————————–
+
+# 3. Build the new DCR JSON
+
+# Rules:
+
+# - kind              → “Direct”
+
+# - dataSources       → removed  (not used with Logs Ingestion API)
+
+# - dataCollectionEndpointId → removed
+
+# - streamDeclarations, destinations, dataFlows → carried over
+
+# —————————————————————————–
+
+log “Building new DCR payload…”
+
+NEW_DCR_JSON=$(echo “$OLD_DCR_JSON” | python3 - << ‘PYEOF’
+import sys, json
+
+data = json.load(sys.stdin)
+props = data.get(“properties”, {})
+
+new_props = {}
+
+# Carry over stream declarations (column schema)
+
+if “streamDeclarations” in props:
+new_props[“streamDeclarations”] = props[“streamDeclarations”]
+
+# Carry over destinations (Log Analytics workspace bindings)
+
+if “destinations” in props:
+# Keep only logAnalytics destinations; drop AMA-specific ones
+destinations = props[“destinations”]
+new_destinations = {}
+if “logAnalytics” in destinations:
+new_destinations[“logAnalytics”] = destinations[“logAnalytics”]
+new_props[“destinations”] = new_destinations
+
+# Carry over data flows (stream → table mappings)
+
+if “dataFlows” in props:
+new_props[“dataFlows”] = props[“dataFlows”]
+
+# Build final payload
+
+payload = {
+“kind”: “Direct”,
+“properties”: new_props
+}
+
+print(json.dumps(payload, indent=2))
+PYEOF
+)
+
+# Persist to a temp file for the az CLI
+
+TMPFILE=$(mktemp /tmp/new-dcr-XXXXXX.json)
+echo “$NEW_DCR_JSON” > “$TMPFILE”
+log “New DCR JSON written to: $TMPFILE”
+echo “”
+echo “— Payload preview —”
+echo “$NEW_DCR_JSON”
+echo “———————–”
+echo “”
+
+# —————————————————————————–
+
+# 4. Create the new DCR
+
+# —————————————————————————–
+
+log “Creating new DCR: $NEW_DCR_NAME …”
+az monitor data-collection rule create   
+–name “$NEW_DCR_NAME”   
+–resource-group “$RESOURCE_GROUP”   
+–location “$LOCATION”   
+–rule-file “$TMPFILE”   
+–output none || error “DCR creation failed. Check the payload above for issues.”
+
+ok “DCR ‘$NEW_DCR_NAME’ created successfully.”
+
+# Cleanup temp file
+
+rm -f “$TMPFILE”
+
+# —————————————————————————–
+
+# 5. Retrieve and display the HTTP ingestion endpoint + immutable ID
+
+# —————————————————————————–
+
+log “Retrieving ingestion endpoint and immutable ID…”
+
+NEW_DCR_DETAILS=$(az monitor data-collection rule show   
+–name “$NEW_DCR_NAME”   
+–resource-group “$RESOURCE_GROUP”   
+–output json)
+
+IMMUTABLE_ID=$(echo “$NEW_DCR_DETAILS” | python3 -c   
+“import sys,json; d=json.load(sys.stdin); print(d[‘properties’].get(‘immutableId’,‘NOT FOUND’))”)
+
+INGESTION_ENDPOINT=$(echo “$NEW_DCR_DETAILS” | python3 -c   
+“import sys,json; d=json.load(sys.stdin); print(d[‘properties’].get(‘logsIngestion’,{}).get(‘endpoint’,‘NOT FOUND’))”)
+
+DCR_RESOURCE_ID=$(echo “$NEW_DCR_DETAILS” | python3 -c   
+“import sys,json; print(json.load(sys.stdin)[‘id’])”)
+
+echo “”
+echo -e “${GREEN}============================================================${NC}”
+echo -e “${GREEN}  New DCR created — save these values for Cribl / testing  ${NC}”
+echo -e “${GREEN}============================================================${NC}”
+echo -e “  DCR Name         : ${CYAN}$NEW_DCR_NAME${NC}”
+echo -e “  Resource Group   : ${CYAN}$RESOURCE_GROUP${NC}”
+echo -e “  Location         : ${CYAN}$LOCATION${NC}”
+echo -e “  Immutable ID     : ${CYAN}$IMMUTABLE_ID${NC}”
+echo -e “  Ingestion URL    : ${CYAN}$INGESTION_ENDPOINT${NC}”
+echo -e “  Full Resource ID : ${CYAN}$DCR_RESOURCE_ID${NC}”
+echo -e “${GREEN}============================================================${NC}”
+echo “”
+echo -e “${YELLOW}Next step — assign the ‘Monitoring Metrics Publisher’ role to${NC}”
+echo -e “${YELLOW}your Cribl service principal / app registration:${NC}”
+echo “”
+echo “  az role assignment create \”
+echo “    –role "Monitoring Metrics Publisher" \”
+echo “    –assignee <app-registration-object-id> \”
+echo “    –scope $DCR_RESOURCE_ID”
+echo “”
